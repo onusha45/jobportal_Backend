@@ -23,7 +23,7 @@ class LoginViewSet(viewsets.ViewSet):
             password = serializer.validated_data['password']
             
             # Authenticate user
-            user = authenticate(request, username=email, password=password)
+            user = authenticate(request, email=email, password=password)
             if user:
                 # Create or get token
                 token, created = Token.objects.get_or_create(user=user)

@@ -13,11 +13,11 @@ from rest_framework.authtoken.views import ObtainAuthToken
 def gettoken(request):
     if request.method == 'POST':
         # Assuming you have a user authentication system in place:
-        username = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
 
         # Authenticate the user
-        user = authenticate(username=username, password=password)
+        user = authenticate(email=email, password=password)
 
         if user is not None and user.is_active:
             token, created = Token.objects.get_or_create(user=user)

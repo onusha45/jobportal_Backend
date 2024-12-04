@@ -22,6 +22,9 @@ class CustomUser(AbstractUser):
     qualification = models.ForeignKey(Qualification, on_delete=models.CASCADE, blank=True, null=True)
     pan_no = models.CharField(max_length=200, null=True)
 
+    USERNAME_FIELD = 'email'  # Set email as the primary identifier
+    REQUIRED_FIELDS = ['username']  # Fields required on createsuperuser
+
 
     def __str__(self):
           return self.username
