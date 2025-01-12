@@ -3,7 +3,9 @@ from django.contrib.auth import authenticate ,login as auth_login
 from rest_framework_simplejwt.tokens import AccessToken
 from .forms import Login,UserSignup
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def signup(request):
     if request.method == "POST":
         form = UserSignup(request.POST, request.FILES)
@@ -11,6 +13,7 @@ def signup(request):
             user = form.save(commit=False)
             
             password = form.cleaned_data.get('password')
+            print(password)
             confirm_password = form.cleaned_data.get('repassword')
             is_Employeer = form.cleaned_data.get('isEmployer')
             
@@ -27,6 +30,7 @@ def signup(request):
                     request.session["user_id"] = user.id
                     return redirect('jobseeker_signup')
         else:
+            print("Error occurred...")
             print(form.errors)
             print(request.FILES)
             print(request.POST)

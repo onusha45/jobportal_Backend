@@ -7,9 +7,10 @@ class Login(forms.Form):
 
 class UserSignup(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
-    repassword = forms.CharField(widget=forms.PasswordInput)
+    repassword = forms.CharField(widget=forms.PasswordInput)       
+    profile = forms.ImageField(required=False)                                                     
     class Meta :
-        model = CustomUser
+        model = CustomUser                                                                  
         fields = ['profile', 'username','email','password', 'repassword', 'isEmployer']
 
 class EmployeerSignup(forms.ModelForm):
