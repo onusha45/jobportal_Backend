@@ -1,9 +1,0 @@
-
-<div>{% if user.profile %}
-    <img src="{{ user.profile.url }}" alt="{{ message.user.username }}" class="profile-pic me-2" height="80px" width="80px" style="border-radius: 50%; display: flex; margin: 0 auto; border: 1px solid black; ">
-    {% else %}
-    <h1>{{ user.username }}</h1>
-    {% endif %}
-</div>
-
-<h1>Welcome {{ user.username }}</h1>

@@ -16,15 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
-from .views import *
 
-from User_app.views import CustomTokenObtainPairView
+
+
+# from .views import *
+
+# from User_app.views import CustomTokenObtainPairView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',index,name='index'),
-    path('',include('User_app.urls')),
+    # path('',index,name='index'),
+    path('api/', include('accounts.urls')),
+    # path('',include('User_app.urls')),
 
-    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
 
 ]

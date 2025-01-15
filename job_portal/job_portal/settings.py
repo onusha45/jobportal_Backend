@@ -39,12 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     #custom app
-    'User_app.apps.UserAppConfig',
+    # 'User_app.apps.UserAppConfig',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+
+    'accounts',
     
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 MIDDLEWARE = [
     # 'django.middleware.security.SecurityMiddleware',
@@ -134,7 +143,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-AUTH_USER_MODEL = "User_app.CustomUser"
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 
 
