@@ -36,3 +36,26 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
           return self.username
+    
+class JobPosting(models.Model):
+    JOB_TYPE_CHOICES = [
+        ('full_time', 'Full Time'),
+        ('part_time', 'Part Time'),
+    ]
+
+    EXPERIENCE_LEVEL_CHOICES = [
+        (1, 'Entry Level'),
+        (2, 'Mid Level'),
+        (3, 'Senior Level'),
+    ]
+
+    company_name = models.CharField(max_length=200)
+    company_address = models.CharField(max_length=200, null=True, blank=True)
+    job_title = models.CharField(max_length=200)
+    job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, null=True)
+    experience_level = models.IntegerField(choices=EXPERIENCE_LEVEL_CHOICES, null=True)
+    job_description = models.TextField(max_length=500, null=True, blank=True)
+    requirements = models.TextField(max_length=500, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.job_title} at {self.company_name}"

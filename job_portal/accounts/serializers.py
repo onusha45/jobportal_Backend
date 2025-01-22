@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser,JobPosting
 
 class UserSignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -20,3 +20,13 @@ class UserSignupSerializer(serializers.ModelSerializer):
         user.set_password(password) 
         user.save()
         return user
+class JobPostingSerializer(serializers.ModelSerializer):
+    class  Meta :
+        model = JobPosting
+        fields ='__all__'
+
+    
+    def create(self, validated_data):
+        # This method is used to create a new JobPosting instance
+        print("Creating job posting with data:", validated_data)
+        return JobPosting.objects.create(**validated_data)
