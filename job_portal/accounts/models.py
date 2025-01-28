@@ -49,7 +49,8 @@ class JobPosting(models.Model):
         (3, 'Senior Level'),
     ]
 
-    company_name = models.CharField(max_length=200)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    company_name = models.CharField(max_length=200, editable=False)
     company_address = models.CharField(max_length=200, null=True, blank=True)
     job_title = models.CharField(max_length=200)
     job_type = models.CharField(max_length=50, choices=JOB_TYPE_CHOICES, null=True)
@@ -59,3 +60,7 @@ class JobPosting(models.Model):
 
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
+
+    def save(self, *args, **kwargs):
+         self.company_name = self.user.company_name
+         super().save(*args, **kwargs)

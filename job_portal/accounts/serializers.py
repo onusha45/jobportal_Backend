@@ -23,10 +23,16 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class JobPostingSerializer(serializers.ModelSerializer):
     class  Meta :
         model = JobPosting
-        fields ='__all__'
+        fields ='_all_'
 
     
     def create(self, validated_data):
         # This method is used to create a new JobPosting instance
         print("Creating job posting with data:", validated_data)
         return JobPosting.objects.create(**validated_data)
+    
+# In serializers.py
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'resume']

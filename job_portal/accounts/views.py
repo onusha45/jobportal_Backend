@@ -5,7 +5,11 @@ from .serializers import UserSignupSerializer,JobPostingSerializer
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-
+from .models import JobPosting
+from django.core.files.storage import default_storage
+from .models import CustomUser, JobPosting
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import JobPostingSerializer
 
 class SignupView(APIView):
     def post(self, request):
@@ -48,14 +52,108 @@ class UserDetailsView(APIView):
             'role': user.role,  # Assuming the 'role' field is available in your CustomUser model
         })
 
+#utsab
 class JobPostingView(APIView):
+    def get(self,request):
+        try:
+            jobs = JobPosting.objects.all()
+            serializer = JobPostingSerializer(jobs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def post(self, request):
-        print("Incoming request data:", request.data)  # Log the incoming data
         serializer = JobPostingSerializer(data=request.data)
-        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        print("Invalid data:", serializer.errors)  # Debug invalid data
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'address': user.address,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'qualification': user.qualification,
+            'skills': user.skills,
+            'resume': user.resume.url if user.resume else None,
+        })
+
+    def put(self, request):
+        user = request.user
+        data = request.data
+
+        # Update user fields if they are provided in the request
+        if 'first_name' in data:
+            user.first_name = data['first_name']
+        if 'last_name' in data:
+            user.last_name = data['last_name']
+        if 'qualification' in data:
+            user.qualification = data['qualification']
+        if 'username' in data:
+            user.username = data['username']
+        if 'email' in data:
+            user.email = data['email']
+        if 'address' in data:
+            user.address = data['address']
+        if 'skills' in data:
+            user.skills = data['skills']
+
+        user.save()
+
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'address': user.address,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'qualification': user.qualification,
+            'skills': user.skills,
+            'resume': user.resume.url if user.resume else None,
+        }, status=status.HTTP_200_OK)
+ #utsab   
+class ResumeUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if 'resume' not in request.FILES:
+            return Response({"error": "No resume file provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        resume_file = request.FILES['resume']
+        
+        # Save the file to the user's resume field
+        user.resume = resume_file
+        user.save()
+
+        # Get the URL of the saved file
+        file_url = user.resume.url
+
+        return Response({"resume": file_url}, status=status.HTTP_201_CREATED)
+
+#utsab
+class RecommendedJobsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user  # Get the authenticated user
+
+        # Fetch all job postings
+        jobs = JobPosting.objects.all()
+        job_serializer = JobPostingSerializer(jobs, many=True)
+
+        # Return user profile and job postings
+        return Response({
+            "user": {
+                "skills": user.skills,
+                "job_type": user.role,  # Assuming role is used for job type preference
+                "experience_level": user.qualification,  # Assuming qualification is used for experience level
+            },
+            "jobs": job_serializer.data,
+        }, status=status.HTTP_200_OK)
