@@ -57,6 +57,8 @@ class JobPosting(models.Model):
     experience_level = models.IntegerField(choices=EXPERIENCE_LEVEL_CHOICES, null=True)
     job_description = models.TextField(max_length=500, null=True, blank=True)
     requirements = models.TextField(max_length=500, null=True, blank=True)
+    job_salary= models.IntegerField(null=True, blank=True)
+
 
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
