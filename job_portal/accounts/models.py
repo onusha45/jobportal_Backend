@@ -57,8 +57,8 @@ class JobPosting(models.Model):
     experience_level = models.IntegerField(choices=EXPERIENCE_LEVEL_CHOICES, null=True)
     job_description = models.TextField(max_length=500, null=True, blank=True)
     requirements = models.TextField(max_length=500, null=True, blank=True)
-    job_salary= models.IntegerField(null=True, blank=True)
-
+    min_salary= models.IntegerField(null=True, blank=True)
+    max_salary= models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
@@ -66,3 +66,25 @@ class JobPosting(models.Model):
     def save(self, *args, **kwargs):
          self.company_name = self.user.company_name
          super().save(*args, **kwargs)
+    
+class JobApply(models.Model):
+   
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=200, editable=False)
+    last_name = models.CharField(max_length=200, editable=False)
+    location = models.CharField(max_length=200, null=True, blank=True)
+    resume = models.FileField(upload_to='jobapplied_resumes/', null=True, blank=True)
+    phone_no= models.IntegerField(null=True, blank=True)
+    expected_salary= models.IntegerField(null=True, blank=True)
+
+
+    def __str__(self):
+        return f"{self.job_title} at {self.company_name}"
+
+    def save(self, *args, **kwargs):
+         self.first_name = self.user.first_name
+         self.last_name = self.user.last_name
+
+         super().save(*args, **kwargs)
+    
+
