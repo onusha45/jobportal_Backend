@@ -27,7 +27,8 @@ from accounts.views import RecommendedJobsView  # Import the view
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('',index,name='index'),
-    path('api/', include('accounts.urls')),
+    path('api/', include('accounts.urls')),   
+    path('api/jobs/', include('main.urls')),
     # path('',include('User_app.urls')),
     path('recommended-jobs/', RecommendedJobsView.as_view(), name='recommended_jobs'),
 
