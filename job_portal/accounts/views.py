@@ -10,6 +10,12 @@ from django.core.files.storage import default_storage
 from .models import CustomUser, JobPosting
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import JobPostingSerializer
+from .models import JobApplication  # Import your model
+from .serializers import JobApplicationSerializer, JobApplySerializer # Import the serializer
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+
 
 class SignupView(APIView):
     def post(self, request):
@@ -54,21 +60,38 @@ class UserDetailsView(APIView):
 
 #utsab
 class JobPostingView(APIView):
-    def get(self,request):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
         try:
-            jobs = JobPosting.objects.all()
-            serializer = JobPostingSerializer(jobs, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            job_postings = JobPosting.objects.all().order_by('-id')  # Get all jobs, newest first
+            serializer = JobPostingSerializer(job_postings, many=True)
+            return Response(serializer.data)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print("Error fetching jobs:", str(e))
+            return Response(
+                {"detail": "Error fetching job postings"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def post(self, request):
-        serializer = JobPostingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+        try:
+            data = request.data.copy()
+            data['user'] = request.user.id
+            
+            serializer = JobPostingSerializer(data=data)
+            if serializer.is_valid():
+                instance = serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            print("Error creating job posting:", str(e))
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -117,6 +140,27 @@ class ProfileView(APIView):
             'skills': user.skills,
             'resume': user.resume.url if user.resume else None,
         }, status=status.HTTP_200_OK)
+    
+
+ # views.py
+class EmployerProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        # Ensure you're dealing with an employer user
+        if user.role != 'job_employer':
+            return Response({"detail": "Not authorized to access this profile."}, status=status.HTTP_403_FORBIDDEN)
+
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'company_name': user.company_name,  # Employer-specific field
+            'address': user.address,
+           
+        })
+
+
  #utsab   
 class ResumeUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -157,3 +201,77 @@ class RecommendedJobsView(APIView):
             },
             "jobs": job_serializer.data,
         }, status=status.HTTP_200_OK)
+    
+
+class ApplyJobView(APIView):
+    def post(self, request):
+        # Get data from request
+        job_id = request.data.get('job_id')
+        user_id = request.data.get('user_id')
+        location = request.data.get('location')
+        phone = request.data.get('phone')
+        salary = request.data.get('salary')
+        
+        # Handle file upload
+        resume = request.FILES.get('resume')  # Handling the file upload
+        
+        # Add debugging for received data
+        print(f"Received data: job_id={job_id}, user_id={user_id}, location={location}, phone={phone}, salary={salary}, resume={resume}")
+
+        # Check if the required fields are present
+        if not all([job_id, user_id, location, phone, salary, resume]):
+            return Response({"error": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Create and save the JobApplication object
+            job_application = JobApplication(
+                job_id=job_id,
+                user_id=user_id,
+                location=location,
+                phone=phone,
+                salary=salary,
+                resume=resume  # Save the file
+            )
+            job_application.save()
+            
+            print(f"Job Application saved with ID: {job_application.id}")
+            
+            # Serialize the saved job application (optional)
+            serializer = JobApplicationSerializer(job_application)
+            
+            # Return success response with serialized data
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            print(f"Error: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+class JobApplicationView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        try:
+            user = request.user
+            
+            application_data = {
+                'user': user.id,
+                'location': request.data.get('location'),
+                'resume': request.FILES.get('resume'),
+                'phone_no': request.data.get('phone_no'),
+                'expected_salary': request.data.get('expected_salary'),
+            }
+
+            serializer = JobApplySerializer(data=application_data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)  # Fixed
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Fixed
+            
+        except Exception as e:
+            print("Exception occurred:", str(e))
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

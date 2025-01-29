@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 class CustomUser(AbstractUser):
 
@@ -37,6 +38,7 @@ class CustomUser(AbstractUser):
     def __str__(self):
           return self.username
     
+
 class JobPosting(models.Model):
     JOB_TYPE_CHOICES = [
         ('full_time', 'Full Time'),
@@ -49,7 +51,7 @@ class JobPosting(models.Model):
         (3, 'Senior Level'),
     ]
 
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     company_name = models.CharField(max_length=200, editable=False)
     company_address = models.CharField(max_length=200, null=True, blank=True)
     job_title = models.CharField(max_length=200)
@@ -57,34 +59,41 @@ class JobPosting(models.Model):
     experience_level = models.IntegerField(choices=EXPERIENCE_LEVEL_CHOICES, null=True)
     job_description = models.TextField(max_length=500, null=True, blank=True)
     requirements = models.TextField(max_length=500, null=True, blank=True)
-    min_salary= models.IntegerField(null=True, blank=True)
-    max_salary= models.IntegerField(null=True, blank=True)
+    min_salary = models.IntegerField(null=True, blank=True)
+    max_salary = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.job_title} at {self.company_name}"
 
     def save(self, *args, **kwargs):
-         self.company_name = self.user.company_name
-         super().save(*args, **kwargs)
-    
+        if not self.company_name and self.user and hasattr(self.user, 'company_name'):
+            self.company_name = self.user.company_name or "Unnamed Company"
+        super().save(*args, **kwargs)
+
 class JobApply(models.Model):
-   
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=200, editable=False)
     last_name = models.CharField(max_length=200, editable=False)
     location = models.CharField(max_length=200, null=True, blank=True)
     resume = models.FileField(upload_to='jobapplied_resumes/', null=True, blank=True)
-    phone_no= models.IntegerField(null=True, blank=True)
-    expected_salary= models.IntegerField(null=True, blank=True)
-
+    phone_no = models.IntegerField(null=True, blank=True)
+    expected_salary = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.job_title} at {self.company_name}"
+        # Changed to use first_name and last_name instead of non-existent fields
+        return f"Application by {self.first_name} {self.last_name}"
 
     def save(self, *args, **kwargs):
-         self.first_name = self.user.first_name
-         self.last_name = self.user.last_name
+        self.first_name = self.user.first_name
+        self.last_name = self.user.last_name
+        super().save(*args, **kwargs)
 
-         super().save(*args, **kwargs)
+
+
+class JobApplication(models.Model):
+    job_id = models.IntegerField()
+    user_id = models.IntegerField()
+    # You can add other fields like cover letter, resume, etc.
     
-
+    def __str__(self):
+        return f"Application for Job {self.job_id} by User {self.user_id}"
