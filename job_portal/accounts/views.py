@@ -195,20 +195,26 @@ class RecommendedJobsView(APIView):
 
     def get(self, request):
         user = request.user  # Get the authenticated user
+
         toggle = request.query_params.get('toggle', False)
         # Fetch all job postings
         jobs = JobPosting.objects.all()
+        print(jobs)
         data = []
         for job in jobs:
+        
+            
             point1 = [user.longitude, user.latitude]
             point2 = [job.user.longitude, job.user.latitude]
             distance = euclidean_distance(point1, point2)
+            
 
             # Add distance to the job data
             job_data = JobPostingSerializer(job).data  # Serialize the job data
             job_data['distance'] = distance  # Add the calculated distance
             data.append(job_data)
-        if toggle:
+        print(type(toggle))   
+        if toggle and toggle=="true":
             data.sort(key=lambda x: x['distance'])
         # Return user profile and job postings
         return Response({

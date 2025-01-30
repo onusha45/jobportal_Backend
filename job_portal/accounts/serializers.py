@@ -27,7 +27,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class JobPostingSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobPosting
-        fields = '_all_'
+        fields = '__all__'
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -38,16 +38,15 @@ class JobPostingSerializer(serializers.ModelSerializer):
             3: "Senior Level"
         }
         representation['experience_level'] = experience_levels.get(instance.experience_level, "Unknown")
-
+        
         # Convert job_type from database format to display format
         job_types = {
             'full_time': "Full Time",
             'part_time': "Part Time"
         }
         representation['job_type'] = job_types.get(instance.job_type, instance.job_type)
-
+        
         return representation
-
 # In serializers.py
 
 
