@@ -25,7 +25,7 @@ class CustomUser(AbstractUser):
     longitude = models.FloatField(null=True, blank=True)
     resume = models.FileField(upload_to='resumes/', null=True, blank=True)
     role = models.CharField(max_length=20, choices=JOB_ROLE_CHOICES, default='job_seeker')
-    address = models.CharField(max_length=50, null=True)
+    address = models.CharField(max_length=200, null=True)
     company_name = models.CharField(max_length=200, null=True)
     skills = models.CharField(max_length=100, null=True)
     qualification = models.CharField(max_length=50, choices=QUALIFICATION_CHOICES, null=True)
