@@ -24,7 +24,7 @@ class UserSignupSerializer(serializers.ModelSerializer):
 class JobPostingSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobPosting
-        fields = '__all__'
+        fields = '_all_'
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -60,5 +60,5 @@ class JobApplicationSerializer(serializers.ModelSerializer):
 class JobApplySerializer(serializers.ModelSerializer):
     class Meta:
         model = JobApply
-        fields = '__all__'
+        fields = '_all_'
         read_only_fields = ('first_name', 'last_name')
