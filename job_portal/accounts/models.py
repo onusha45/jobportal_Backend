@@ -21,6 +21,8 @@ class CustomUser(AbstractUser):
 
     email = models.EmailField(unique=True)
     profile = models.ImageField(upload_to='profile/', null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     resume = models.FileField(upload_to='resumes/', null=True, blank=True)
     role = models.CharField(max_length=20, choices=JOB_ROLE_CHOICES, default='job_seeker')
     address = models.CharField(max_length=50, null=True)
@@ -74,7 +76,6 @@ class JobApply(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=200, null=True, blank=True)  # Removed editable=False
     last_name = models.CharField(max_length=200,null=True, blank=True)   # Removed editable=False
-    location = models.CharField(max_length=200, null=True, blank=True)
     resume = models.FileField(upload_to='jobapplied_resumes/', null=True, blank=True)
     phone_no = models.IntegerField(null=True, blank=True)
     expected_salary = models.IntegerField(null=True, blank=True)

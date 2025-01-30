@@ -20,9 +20,14 @@ from django.core.files.storage import default_storage
 class SignupView(APIView):
     def post(self, request):
         serializer = UserSignupSerializer(data=request.data)
-        
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            if latitude and longitude:
+                user.latitude = latitude
+                user.longitude = longitude
+            user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
