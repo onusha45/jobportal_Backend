@@ -2,7 +2,7 @@ from accounts.service import euclidean_distance
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from .serializers import UserSignupSerializer, JobPostingSerializer
+from .serializers import JobApplicationGetSerializer, UserSignupSerializer, JobPostingSerializer
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
@@ -202,19 +202,17 @@ class RecommendedJobsView(APIView):
         print(jobs)
         data = []
         for job in jobs:
-        
-            
+
             point1 = [user.longitude, user.latitude]
             point2 = [job.user.longitude, job.user.latitude]
             distance = euclidean_distance(point1, point2)
-            
 
             # Add distance to the job data
             job_data = JobPostingSerializer(job).data  # Serialize the job data
             job_data['distance'] = distance  # Add the calculated distance
             data.append(job_data)
-        print(type(toggle))   
-        if toggle and toggle=="true":
+        print(type(toggle))
+        if toggle and toggle == "true":
             data.sort(key=lambda x: x['distance'])
         # Return user profile and job postings
         return Response({
@@ -308,14 +306,31 @@ class JobApplicantDetailView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
 
+    def get(self, request, job_id):
+        try:
+            jobs = JobPosting.objects.filter(id=job_id).values_list("id")
+            application_data = JobApply.objects.filter(job_id__in=jobs)
+            application_data = sorted(application_data, key=lambda x: x.score, reverse=True)
+
+            serializer = JobApplicationGetSerializer(application_data, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            print("Exception occurred:", str(e))
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ListJobViewApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         try:
             user = request.user
-            jobs = JobPosting.objects.filter(user=user.id).values_list("id")
-            print(jobs)
-            application_data = JobApply.objects.filter(job_id__in=jobs)
-            print(application_data)
-            serializer = JobApplySerializer(application_data, many=True)
+            jobs = JobPosting.objects.filter(user=user.id)
+            serializer = JobPostingSerializer(jobs, many=True)
             return Response(serializer.data)
 
         except Exception as e:
