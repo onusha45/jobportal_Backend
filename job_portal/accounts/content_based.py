@@ -27,12 +27,13 @@ def cosine_similarity(vec1, vec2):
 
 
 def recommend_applicant(resume_path, job_factors):
+    
     resume_content = read_pdf_manually(resume_path)
-
-    keywords = preprocess(' '.join(job_factors.values()))
+    
+    keywords = preprocess(' '.join(str(value) for value in job_factors.values()))
 
     resume_vector = compute_vector(resume_content, keywords)
-    job_vector = compute_vector(' '.join(job_factors.values()), keywords)
+    job_vector = compute_vector(' '.join(str(value) for value in job_factors.values()), keywords)
     score = cosine_similarity(resume_vector, job_vector)
 
     return score

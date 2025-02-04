@@ -1,4 +1,4 @@
-from job_portal.accounts.content_based import recommend_applicant
+from accounts.content_based import recommend_applicant
 from rest_framework import serializers
 from .models import CustomUser, JobPosting, JobApplication, JobApply
 
@@ -74,22 +74,26 @@ class JobApplicationGetSerializer(serializers.ModelSerializer):
     score = serializers.SerializerMethodField()
 
     class Meta:
-        model = JobApplication
+        model = JobApply
         fields = ['user', 'first_name', 'last_name', 'resume', 'phone_no', 'expected_salary', 'job_id', 'score']
 
     def get_score(self, obj):
         job_posting = obj.job_id
+        
         if not job_posting or not obj.resume:
             return 0.0  # No job or resume, return 0 score
 
         # Example job factors (can be adjusted based on your job model)
         job_factors = {
-            "title": job_posting.title or "",
-            "description": job_posting.description or "",
+            "title": job_posting.job_title or "",
+            "description": job_posting.job_description or "",
             "experience": job_posting.experience_level or "",
-            "salary": str(job_posting.salary) if job_posting.salary else "",
-            "location": job_posting.location or "",
+            "salary": str(job_posting.min_salary) if job_posting.min_salary else "",
+            "location": job_posting.company_address or "",
             "job_type": job_posting.job_type or ""
+            
         }
-        score = recommend_applicant(obj.resume, job_factors)
+        media_url= obj.resume.url
+        main_url = media_url.replace("/","\\")
+        score = recommend_applicant(f"D:\FinalProject\jobportal_Backend\job_portal{main_url}", job_factors)
         return score

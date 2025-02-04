@@ -310,10 +310,12 @@ class JobApplicantDetailView(APIView):
         try:
             jobs = JobPosting.objects.filter(id=job_id).values_list("id")
             application_data = JobApply.objects.filter(job_id__in=jobs)
-            application_data = sorted(application_data, key=lambda x: x.score, reverse=True)
+           
 
             serializer = JobApplicationGetSerializer(application_data, many=True)
-            return Response(serializer.data)
+            print(serializer.data)
+            application_data =  sorted(serializer.data, key=lambda x: x.get('score', 0), reverse=True)
+            return Response(application_data)
 
         except Exception as e:
             print("Exception occurred:", str(e))
@@ -330,7 +332,9 @@ class ListJobViewApi(APIView):
         try:
             user = request.user
             jobs = JobPosting.objects.filter(user=user.id)
+            print(jobs)
             serializer = JobPostingSerializer(jobs, many=True)
+            print(serializer.data)
             return Response(serializer.data)
 
         except Exception as e:
