@@ -1,10 +1,10 @@
+# accounts/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
 class CustomUser(AbstractUser):
-
     QUALIFICATION_CHOICES = [
         ('SEE', 'SEE'),
         ('+2', '+2'),
@@ -33,12 +33,11 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = 'email'  # Set email as the primary identifier
-    REQUIRED_FIELDS = ['username']  # Fields required on createsuperuser
-
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-          return self.username
+        return self.username
     
 
 class JobPosting(models.Model):
@@ -74,12 +73,18 @@ class JobPosting(models.Model):
 
 class JobApply(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=200, null=True, blank=True)  # Removed editable=False
-    last_name = models.CharField(max_length=200,null=True, blank=True)   # Removed editable=False
+    first_name = models.CharField(max_length=200, null=True, blank=True)
+    last_name = models.CharField(max_length=200, null=True, blank=True)
     resume = models.FileField(upload_to='jobapplied_resumes/', null=True, blank=True)
     phone_no = models.IntegerField(null=True, blank=True)
     expected_salary = models.IntegerField(null=True, blank=True)
-    job_id= models.ForeignKey(JobPosting,on_delete=models.CASCADE,null=True)
+    job_id = models.ForeignKey(JobPosting, on_delete=models.CASCADE, null=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[('applied', 'Applied'), ('contacted', 'Contacted'), ('selected', 'Selected')],
+        default='applied'
+    )
+
     def __str__(self):
         return f"Application by {self.first_name} {self.last_name}"
 
@@ -90,12 +95,20 @@ class JobApply(models.Model):
             self.last_name = self.user.last_name
         super().save(*args, **kwargs)
 
-
-
 class JobApplication(models.Model):
     job_id = models.IntegerField()
     user_id = models.IntegerField()
-    # You can add other fields like cover letter, resume, etc.
     
     def __str__(self):
         return f"Application for Job {self.job_id} by User {self.user_id}"
+    
+class Message(models.Model):
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="sent_messages")
+    recipient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="received_messages")
+    job_application = models.ForeignKey(JobApply, on_delete=models.CASCADE, null=True)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Message from {self.sender} to {self.recipient} about {self.job_application}"
